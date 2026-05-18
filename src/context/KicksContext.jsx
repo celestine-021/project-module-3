@@ -1,5 +1,4 @@
-
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 const KicksContext = createContext(null)
 
@@ -38,28 +37,24 @@ const initialKicks = [
   }
 ]
 
-
 export function KicksProvider({ children }) {
   const [kicks, setKicks] = useState([])
   const [cart, setCart] = useState([])
 
-  // Fetch kicks on load
+  // FIX 1: Added useEffect to imports (top), and replaced undefined API with initialKicks
   useEffect(() => {
-    fetch(API)
-      .then(res => res.json())
-      .then(data => setKicks(data))
+    setKicks(initialKicks)
   }, [])
 
+  // FIX 2: Added the missing closing brace for addKick
   function addKick(newKick) {
-
-    // Make sure to include the image property
     const kickWithImage = {
       ...newKick,
       id: Date.now(),
       image: newKick.image || 'https://via.placeholder.com/400x400?text=New+Kick'
     }
     setKicks(prev => [...prev, kickWithImage])
-
+  } // ← was missing
 
   function addToCart(kick) {
     setCart(prev => {
@@ -86,7 +81,6 @@ export function KicksProvider({ children }) {
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
-
     <KicksContext.Provider value={{ 
       kicks, 
       addKick, 
@@ -100,8 +94,10 @@ export function KicksProvider({ children }) {
       {children}
     </KicksContext.Provider>
   )
-}
+} // ← KicksProvider closes here
 
+// FIX 3: Removed the extra stray } that was closing KicksProvider early,
+//         which trapped useKicksContext inside it and caused the build error
 export function useKicksContext() {
   const context = useContext(KicksContext)
   if (!context) {
